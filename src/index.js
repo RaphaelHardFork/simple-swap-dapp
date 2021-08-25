@@ -9,9 +9,7 @@ import { ChakraProvider } from "@chakra-ui/react"
 ReactDOM.render(
   <React.StrictMode>
     <ChakraProvider>
-      <Web3Provider>
-        <App />
-      </Web3Provider>
+      <App />
     </ChakraProvider>
   </React.StrictMode>,
   document.getElementById("root")

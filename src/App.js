@@ -2,7 +2,7 @@ import "./App.css"
 import Dapp from "./Dapp"
 
 const App = () => {
-  return <div className="App"></div>
+  return <Dapp />
 }
 
 export default App
