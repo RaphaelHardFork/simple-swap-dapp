@@ -1,5 +1,5 @@
 import { ethers } from "ethers"
-import { useEffect, useReducer, useRef, useState } from "react"
+import { useCallback, useEffect, useReducer, useRef, useState } from "react"
 
 const chainIdtoName = (chainId) => {
   const id = parseInt(chainId, 10)
@@ -32,7 +32,15 @@ const reducer = (state, action) => {
         networkName: action.networkName,
       }
     case "SET_ACCOUNT":
-      return { ...state, account: action.account, isLogged: action.isLogged }
+      return {
+        ...state,
+        account: action.account,
+        isLogged: action.isLogged,
+        signer: action.signer,
+        eth_balance: action.balance,
+      }
+    case "UPDATE_BALANCE":
+      return { ...state, eth_balance: action.payload }
     default:
       console.error(
         `Wrong action type in the useMetamask hook reducer, ${action.type}`
@@ -40,67 +48,89 @@ const reducer = (state, action) => {
   }
 }
 
+const initialState = {
+  isLogged: false,
+  metamaskUnLocked: false,
+  account: ethers.constants.AddressZero,
+  chainId: 0,
+  networkName: "no provider",
+  eth_balance: ethers.utils.parseEther("0"),
+  signer: null,
+  provider: null,
+}
+
 export const useProvider = () => {
-  const [state, dispatch] = useReducer(reducer, {
-    isLogged: false,
-    metamaskUnLocked: false,
-    account: ethers.constants.AddressZero,
-    chainId: 0,
-    networkName: "no provider",
-    eth_balance: ethers.utils.parseEther("0"),
-    signer: null,
-    provider: null,
-  })
-  const isMounted = useRef(false)
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const networkMounted = useRef(false)
+  const userMounted = useRef(false)
 
-  // create the provider from metamask
-  useEffect(() => {
-    ;(async () => {
-      const provider = await new ethers.providers.Web3Provider(window.ethereum)
-      dispatch({ type: "SET_PROVIDER", payload: provider })
-    })()
-  }, [])
+  // not very useful (render 3 time...): try with useMemo()
+  const getAccount = useCallback(async () => {
+    const accounts = await state.provider.provider.request({
+      method: "eth_accounts",
+    })
+    // change the signer otherwise the former account will sign
+    const signer = await state.provider.getSigner()
+    const balance = await state.provider.getBalance(accounts[0])
+    return [accounts, signer, balance]
+  }, [state.provider])
 
-  // get information from the provider
+  // 1. create the provider from metamask
   useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true
-      console.log("first render")
+    if (state.provider === null) {
+      console.log("1. Get the provider")
+      ;(async () => {
+        const provider = await new ethers.providers.Web3Provider(
+          window.ethereum
+        )
+        dispatch({ type: "SET_PROVIDER", payload: provider })
+      })()
+    }
+  }, [state.provider])
+
+  // 2. get information from the provider
+  useEffect(() => {
+    if (!networkMounted.current) {
+      networkMounted.current = true
+      console.log("2. Get info from the provider (first render)")
     } else {
+      console.log("2. Get info from the provider (take 1s)")
       // need some time before save informations
       setTimeout(() => {
         const chainId = Number(state.provider.provider.chainId)
         const networkName = chainIdtoName(chainId)
         dispatch({ type: "SET_NETWORK", networkName, chainId })
-        console.log(`Network set with ${networkName} (${chainId})`)
+        console.log(`2. Network set with ${networkName} (${chainId})`)
       }, 1000)
     }
   }, [state.provider])
 
-  // check if user is logged to the dApp
+  // 3. check if user is logged to the dApp
   useEffect(() => {
-    if (state.provider) {
+    if (!userMounted.current) {
+      userMounted.current = true
+      console.log("3. Get user infos (first render)")
+    } else {
+      console.log("3. Get user infos")
       ;(async () => {
         try {
-          const accounts = await state.provider.provider.request({
-            method: "eth_accounts",
-          })
-
-          // change the signer otherwise the former account will sign
-          const signer = await state.provider.getSigner()
-          console.log(signer)
+          const [accounts, signer, balance] = await getAccount()
 
           if (accounts.length !== 0) {
             dispatch({
               type: "SET_ACCOUNT",
               isLogged: true,
               account: accounts[0],
+              signer,
+              balance,
             })
           } else {
             dispatch({
               type: "SET_ACCOUNT",
               isLogged: false,
-              account: state.account,
+              account: initialState.account,
+              signer: null,
+              balance: initialState.balance,
             })
           }
         } catch (e) {
@@ -108,7 +138,7 @@ export const useProvider = () => {
         }
       })()
     }
-  }, [state.provider, state.account])
+  }, [state.account, state.chainId, getAccount])
 
   // check if Metamask is unlocked
   // not useful, user have to connect the wallet whatever
@@ -132,7 +162,7 @@ export const useProvider = () => {
         //window.location.reload()
         dispatch({ type: "SET_NETWORK", networkName, chainId: Number(chainId) })
       }
-      window.ethereum.on("chainChanged", chainChanged)
+      state.provider.on("chainChanged", chainChanged)
     }
   }, [state.provider])
 
@@ -140,12 +170,33 @@ export const useProvider = () => {
   useEffect(() => {
     if (state.provider) {
       const accountChanged = async (account) => {
-        console.log(`Account changed to ${account}`)
-        dispatch({ type: "SET_ACCOUNT", account, isLogged: false })
+        if (!account) {
+          console.log(`Account ${state.account} disconnected`)
+          dispatch({
+            type: "SET_ACCOUNT",
+            account: initialState.account,
+            isLogged: false,
+          })
+        } else {
+          console.log(`Account changed to ${account}`)
+          dispatch({ type: "SET_ACCOUNT", account, isLogged: false })
+        }
       }
-      window.ethereum.on("accountsChanged", accountChanged)
+      state.provider.on("accountsChanged", accountChanged)
     }
-  }, [state.provider])
+  }, [state.provider, state.account])
+
+  // change eth balance
+  useEffect(() => {
+    if (state.provider) {
+      const updateBalance = async (block) => {
+        console.log(`Block n°${block} mined`)
+        const balance = await state.provider.getBalance(state.account)
+        dispatch({ type: "UPDATE_BALANCE", payload: balance })
+      }
+      state.provider.on("block", updateBalance)
+    }
+  }, [state.provider, state.isLogged, state.account])
 
   // metamask lock / unlock (DO NOT WORK)
   useEffect(() => {
@@ -154,7 +205,7 @@ export const useProvider = () => {
         console.log(`Account changed to ${account}`)
         // dispatch({ type: "SET_ACCOUNT", account, isLogged: false })
       }
-      window.ethereum.on("unlockEvent", unlockEvent)
+      state.provider.on("unlockEvent", unlockEvent)
     }
   }, [state.provider])
 

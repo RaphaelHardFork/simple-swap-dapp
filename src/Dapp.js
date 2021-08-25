@@ -8,7 +8,10 @@ const Dapp = () => {
 
   const connectWallet = async () => {
     try {
-      await state.provider.provider.request({ method: "eth_requestAccounts" })
+      const result = await state.provider.provider.request({
+        method: "eth_requestAccounts",
+      })
+      console.log(result)
     } catch (e) {
       if (e.code === 4001) {
         console.log("USER DIENED CONNECTION")
