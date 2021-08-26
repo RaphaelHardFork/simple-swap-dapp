@@ -4,33 +4,19 @@ import Header from "./components/Header"
 import { useProvider } from "./web3hook/src/useProvider"
 
 const Dapp = () => {
-  const [state] = useProvider()
+  const [state, connectWallet] = useProvider()
 
-  const connectWallet = async () => {
+  const switchNetwork = async () => {
     try {
       const result = await state.provider.provider.request({
-        method: "eth_requestAccounts",
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x4" }],
       })
       console.log(result)
     } catch (e) {
-      if (e.code === 4001) {
-        console.log("USER DIENED CONNECTION")
-      } else {
-        console.error(e)
-      }
+      console.log(e)
     }
   }
-
-  /*
-  const getAccount = async () => {
-    try {
-      const result = await state.provider.request({ method: "eth_accounts" })
-      console.log(result)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-  */
 
   function debug() {
     console.log(state)
@@ -50,7 +36,7 @@ const Dapp = () => {
 
         <Heading textAlign="center">Welcome to Simple Swap</Heading>
         <Button onClick={connectWallet}>Connect</Button>
-        <Button>Get account</Button>
+        <Button onClick={switchNetwork}>Switch to Rinkeby</Button>
         <Button onClick={debug}>Debug</Button>
 
         <Footer />

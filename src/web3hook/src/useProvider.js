@@ -31,6 +31,8 @@ const reducer = (state, action) => {
         chainId: action.chainId,
         networkName: action.networkName,
       }
+    case "ACCOUNT_CONNECTED":
+      return { ...state, account: action.payload }
     case "SET_ACCOUNT":
       return {
         ...state,
@@ -64,14 +66,34 @@ export const useProvider = () => {
   const networkMounted = useRef(false)
   const userMounted = useRef(false)
 
+  const connectWallet = async () => {
+    try {
+      const result = await state.provider.provider.request({
+        method: "eth_requestAccounts",
+      })
+      dispatch({ type: "ACCOUNT_CONNECTED", payload: result[0] })
+      console.log(result)
+    } catch (e) {
+      if (e.code === 4001) {
+        console.log("USER DIENED CONNECTION")
+      } else {
+        console.error(e)
+      }
+    }
+  }
+
   // not very useful (render 3 time...): try with useMemo()
   const getAccount = useCallback(async () => {
+    console.log(state.networkName)
     const accounts = await state.provider.provider.request({
       method: "eth_accounts",
     })
     // change the signer otherwise the former account will sign
     const signer = await state.provider.getSigner()
-    const balance = await state.provider.getBalance(accounts[0])
+    let balance = initialState.eth_balance
+    if (accounts.length !== 0) {
+      balance = await state.provider.getBalance(accounts[0])
+    }
     return [accounts, signer, balance]
   }, [state.provider])
 
@@ -114,7 +136,18 @@ export const useProvider = () => {
       console.log("3. Get user infos")
       ;(async () => {
         try {
-          const [accounts, signer, balance] = await getAccount()
+          //const [accounts, signer, balance] = await getAccount()
+
+          const accounts = await state.provider.provider.request({
+            method: "eth_accounts",
+          })
+
+          // change the signer otherwise the former account will sign
+          const signer = await state.provider.getSigner()
+          let balance = initialState.eth_balance
+          if (accounts.length !== 0) {
+            balance = await state.provider.getBalance(accounts[0])
+          }
 
           if (accounts.length !== 0) {
             dispatch({
@@ -130,7 +163,7 @@ export const useProvider = () => {
               isLogged: false,
               account: initialState.account,
               signer: null,
-              balance: initialState.balance,
+              balance,
             })
           }
         } catch (e) {
@@ -138,11 +171,12 @@ export const useProvider = () => {
         }
       })()
     }
-  }, [state.account, state.chainId, getAccount])
+  }, [state.provider, state.account])
 
   // check if Metamask is unlocked
   // not useful, user have to connect the wallet whatever
   // TODO: find another way to detect this
+  // TODO: find a way to detect a lock metamask event
   useEffect(() => {
     if (state.provider) {
       ;(async () => {
@@ -150,7 +184,7 @@ export const useProvider = () => {
         dispatch({ type: "SET_METAMASK", payload: bool })
       })()
     }
-  }, [state.provider])
+  }, [state.provider, state.account])
 
   // LISTEN EVENT ON THE NETWORK
   // network change
@@ -162,7 +196,7 @@ export const useProvider = () => {
         //window.location.reload()
         dispatch({ type: "SET_NETWORK", networkName, chainId: Number(chainId) })
       }
-      state.provider.on("chainChanged", chainChanged)
+      window.ethereum.on("chainChanged", chainChanged)
     }
   }, [state.provider])
 
@@ -188,7 +222,7 @@ export const useProvider = () => {
 
   // change eth balance
   useEffect(() => {
-    if (state.provider) {
+    if (state.provider && state.account !== initialState.account) {
       const updateBalance = async (block) => {
         console.log(`Block n°${block} mined`)
         const balance = await state.provider.getBalance(state.account)
@@ -198,6 +232,29 @@ export const useProvider = () => {
     }
   }, [state.provider, state.isLogged, state.account])
 
+  // disconnect
+  useEffect(() => {
+    if (state.provider) {
+      const seeDisconnect = async (code, reason) => {
+        console.log("Disconnected")
+        console.log(reason)
+        console.log(code)
+      }
+      state.provider.on("disconnect", seeDisconnect)
+    }
+  }, [state.provider])
+
+  useEffect(() => {
+    if (state.provider) {
+      const seeDisconnect = async (code, reason) => {
+        console.log("Disconnected")
+        console.log(reason)
+        console.log(code)
+      }
+      state.provider.on("connect", seeDisconnect)
+    }
+  }, [state.provider])
+
   // metamask lock / unlock (DO NOT WORK)
   useEffect(() => {
     if (state.provider) {
@@ -205,9 +262,9 @@ export const useProvider = () => {
         console.log(`Account changed to ${account}`)
         // dispatch({ type: "SET_ACCOUNT", account, isLogged: false })
       }
-      state.provider.on("unlockEvent", unlockEvent)
+      state.provider.on("unlockevent", unlockEvent)
     }
   }, [state.provider])
 
-  return [state]
+  return [state, connectWallet]
 }
