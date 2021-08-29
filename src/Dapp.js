@@ -4,6 +4,8 @@ import Header from "./components/Header"
 import { useProvider } from "./web3hook/src/useProvider"
 import { useProviders } from "./web3hook/src/useProviders"
 import { ethers } from "ethers"
+import { useEffect, useState } from "react"
+import { contractABI, contractAddress } from "./contracts/token"
 
 const Dapp = () => {
   // const [state, connectWallet] = useProvider()
@@ -23,12 +25,24 @@ const Dapp = () => {
   }
   */
 
-  const [provider, state] = useProviders()
+  const [state] = useProviders()
+
+  const [contract, setContract] = useState(null)
+
+  useEffect(() => {
+    if (state.provider) {
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        state.provider
+      )
+      setContract(contract)
+    }
+  }, [state.provider])
 
   async function debug() {
-    console.log(provider)
+    console.log(contract)
     console.log(state)
-    console.log(await state.provider.getBlock())
   }
 
   return (
