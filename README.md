@@ -16,6 +16,13 @@ See in the `useProvider.js` hook
 ## Figment
 
 - get provider with detectProvider
+
   - if provider => ethers web3provider(the right provider: metamask or wallet connect)
   - what is ethers.providers ? can get network without being set ?
   - get address through the signer!
+
+  ## The method
+
+  ### TODO
+
+  - See what we can do with the default provider

@@ -2,10 +2,14 @@ import { Box, Button, Heading } from "@chakra-ui/react"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
 import { useProvider } from "./web3hook/src/useProvider"
+import { useProviders } from "./web3hook/src/useProviders"
+import { ethers } from "ethers"
 
 const Dapp = () => {
-  const [state, connectWallet] = useProvider()
+  // const [state, connectWallet] = useProvider()
 
+  // will goes soon in a hook
+  /*
   const switchNetwork = async () => {
     try {
       const result = await state.provider.provider.request({
@@ -17,10 +21,14 @@ const Dapp = () => {
       console.log(e)
     }
   }
+  */
 
-  function debug() {
+  const [provider, state] = useProviders()
+
+  async function debug() {
+    console.log(provider)
     console.log(state)
-    console.log(window.ethereum)
+    console.log(await state.provider.getBlock())
   }
 
   return (
@@ -35,8 +43,7 @@ const Dapp = () => {
         <Header />
 
         <Heading textAlign="center">Welcome to Simple Swap</Heading>
-        <Button onClick={connectWallet}>Connect</Button>
-        <Button onClick={switchNetwork}>Switch to Rinkeby</Button>
+
         <Button onClick={debug}>Debug</Button>
 
         <Footer />
