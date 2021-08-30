@@ -33,6 +33,9 @@ const reducer = (state, action) => {
         networkId: action.payload.chainId,
         networkName: chainIdtoName(action.payload.chainId),
       }
+    case "SET_ACCOUNT":
+      return { ...state, signer: action.signer, account: action.account }
+
     default:
       console.error(
         `Wrong action type in the useMetamask hook reducer, ${action.type}`
@@ -47,13 +50,15 @@ export const useProviders = () => {
   const [state, dispatch] = useReducer(reducer, {
     providerType: undefined,
     provider: null,
-    account: ethers.utils.AddressZero,
+    signer: null,
+    account: ethers.constants.AddressZero,
     networkName: undefined,
     networkId: 0,
   })
 
   // 1. Find a provider
   useEffect(() => {
+    console.log("1. Get the provider")
     ;(async () => {
       let catchedProvider = null
       try {
@@ -65,7 +70,7 @@ export const useProviders = () => {
       }
       if (catchedProvider === null) {
         // if there is no metamask extension installed
-        catchedProvider = ethers.getDefaultProvider("rinkeby")
+        catchedProvider = ethers.getDefaultProvider("kovan")
         setProvider(catchedProvider)
       }
     })()
@@ -76,6 +81,7 @@ export const useProviders = () => {
     if (!isMounted.current) {
       isMounted.current = true
     } else {
+      console.log("2. Wrap the provider")
       try {
         const web3Provider = new ethers.providers.Web3Provider(provider)
         dispatch({
@@ -84,6 +90,7 @@ export const useProviders = () => {
           providerType: "Web3Provider",
         })
       } catch {
+        console.log(provider)
         dispatch({
           type: "SET_PROVIDER",
           provider,
@@ -96,31 +103,46 @@ export const useProviders = () => {
   // 3. Get information with Ethers.js provider methods
   useEffect(() => {
     if (state.provider) {
+      console.log("3. Get infos from provider")
       ;(async () => {
         const network = await state.provider.getNetwork()
         console.log(network)
+        console.log(provider)
+        console.log(state.provider)
         dispatch({ type: "SET_NETWORK", payload: network })
 
-        // create manage
-        const account = await state.provider.getSigner()
-        console.log(account)
-        // network
-        // const account = state.provider.get
-        // account
+        // signer can be get only through a Web3Provider
+        if (state.providerType === "Web3Provider") {
+          const signer = await state.provider.getSigner()
+          let account
+          try {
+            account = await signer.getAddress()
+          } catch {
+            account = ethers.constants.AddressZero
+          }
+          dispatch({ type: "SET_ACCOUNT", signer, account })
+        }
       })()
     }
-  }, [state.provider])
+  }, [state.provider, state.providerType])
 
   // METHOD
-  const switchNetwork = async () => {
-    try {
-      const result = await state.provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x4" }],
-      })
-      console.log(result)
-    } catch (e) {
-      console.log(e)
+  // switch the network, need to change the provider if no Web3Provider
+  // problem with the switch of the network on default provider ...
+  const switchNetwork = async (chainId) => {
+    if (state.providerType === "Web3Provider") {
+      try {
+        await state.provider.provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId }],
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    } else {
+      const network = chainIdtoName(parseInt(chainId, 16))
+      const newProvider = ethers.getDefaultProvider(network.toLowerCase())
+      setProvider(newProvider)
     }
   }
 
@@ -138,5 +160,5 @@ export const useProviders = () => {
     }
   }, [state.provider])
 
-  return [state]
+  return [state, switchNetwork]
 }

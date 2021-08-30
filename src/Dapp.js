@@ -31,6 +31,7 @@ const Dapp = () => {
 
   useEffect(() => {
     if (state.provider) {
+      console.log("new contract")
       const contract = new ethers.Contract(
         contractAddress,
         contractABI,
@@ -41,8 +42,13 @@ const Dapp = () => {
   }, [state.provider])
 
   async function debug() {
-    console.log(contract)
     console.log(state)
+    console.log(state.networkName)
+    try {
+      console.log(await contract.totalSupply())
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   return (
