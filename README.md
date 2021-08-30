@@ -1,5 +1,7 @@
 # Simple swap dApp
 
+Use: FallbackProviderConfig.provider !!!!
+
 ## Set up a custom provider
 
 See in the `useProvider.js` hook
