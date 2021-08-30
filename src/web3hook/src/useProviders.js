@@ -71,7 +71,11 @@ export const useProviders = () => {
       }
       if (catchedProvider === null) {
         // if there is no metamask extension installed
-        catchedProvider = ethers.getDefaultProvider(undefined) // try to store the network in the localstorage
+        const switchedNetwork = window.localStorage.getItem("switched-network")
+
+        console.log(switchedNetwork)
+
+        catchedProvider = ethers.getDefaultProvider(switchedNetwork) // try to store the network in the localstorage
         setProvider(catchedProvider)
       }
     })()
@@ -91,8 +95,6 @@ export const useProviders = () => {
           providerType: "Web3Provider",
         })
       } catch {
-        console.log("The provider should set the provider below")
-        console.log(provider)
         dispatch({
           type: "SET_PROVIDER",
           provider,
@@ -108,9 +110,6 @@ export const useProviders = () => {
       console.log("3. Get infos from provider")
       ;(async () => {
         const network = await state.provider.getNetwork()
-        console.log(network)
-        console.log(provider)
-        console.log(state.provider)
         dispatch({ type: "SET_NETWORK", payload: network })
 
         // signer can be get only through a Web3Provider
@@ -142,11 +141,10 @@ export const useProviders = () => {
         console.log(e)
       }
     } else {
+      // with the DefaultProvider it needs to reload the page with the right network
       const network = chainIdtoName(parseInt(chainId, 16))
-      // Try to store in the local storage and reload the page !
-      // window.location.reload()
-      const newProvider = ethers.getDefaultProvider(network.toLowerCase())
-      setProvider(newProvider)
+      window.localStorage.setItem("switched-network", network.toLowerCase())
+      window.location.reload() // reload with the network stored in localStorage
     }
   }
 
@@ -155,14 +153,14 @@ export const useProviders = () => {
   useEffect(() => {
     if (state.provider) {
       const updateBalance = async (block) => {
-        console.log(`Block n°${block} mined`)
+        console.log(`Block n°${block} mined on ${state.networkName}`)
         // const balance = await state.provider.getBalance(state.account)
         // dispatch({ type: "UPDATE_BALANCE", payload: balance })
       }
       state.provider.on("block", updateBalance)
       return () => state.provider.off("block", updateBalance)
     }
-  }, [state.provider])
+  }, [state.provider, state.networkName])
 
   return [state, switchNetwork]
 }
