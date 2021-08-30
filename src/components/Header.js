@@ -24,6 +24,7 @@ const Header = () => {
         <Flex alignItems="center">
           <Heading color="telegram.800">Simple Swap</Heading>
           <Spacer />
+
           <Menu>
             <MenuButton me="4" as={Button} rightIcon={<ChevronDownIcon />}>
               Switch network

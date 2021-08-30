@@ -1,10 +1,8 @@
 # Simple swap dApp
 
-Use: FallbackProviderConfig.provider !!!!
-
 ## Set up a custom provider
 
-See in the `useProvider.js` hook
+See in the `useProviders.js` hook
 
 ## TODO
 
@@ -23,8 +21,16 @@ See in the `useProvider.js` hook
   - what is ethers.providers ? can get network without being set ?
   - get address through the signer!
 
-  ## The method
+## The method
 
-  ### TODO
+### TODO
 
-  - See what we can do with the default provider
+- See what we can do with the default provider
+
+## Wallet Connect
+
+[Docs](https://docs.walletconnect.org/quick-start/dapps/web3-provider)
+
+```zsh
+yarn add @walletconnect/web3-provider
+```

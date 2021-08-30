@@ -1,31 +1,15 @@
 import { Box, Button, Heading } from "@chakra-ui/react"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
-import { useProvider } from "./web3hook/src/useProvider"
 import { useProviders } from "./web3hook/src/useProviders"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
 import { contractABI, contractAddress } from "./contracts/token"
 
+import WalletConnectProvider from "@walletconnect/web3-provider"
+
 const Dapp = () => {
-  // const [state, connectWallet] = useProvider()
-
-  // will goes soon in a hook
-  /*
-  const switchNetwork = async () => {
-    try {
-      const result = await state.provider.provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x4" }],
-      })
-      console.log(result)
-    } catch (e) {
-      console.log(e)
-    }
-  }
-  */
-
-  const [state] = useProviders()
+  const [state, , wcConnect] = useProviders()
 
   const [contract, setContract] = useState(null)
 
@@ -42,7 +26,6 @@ const Dapp = () => {
 
   async function debug() {
     console.log(state)
-    console.log(await contract.totalSupply())
   }
 
   return (
@@ -59,6 +42,7 @@ const Dapp = () => {
         <Heading textAlign="center">Welcome to Simple Swap</Heading>
 
         <Button onClick={debug}>Debug</Button>
+        <Button onClick={wcConnect}>Connect</Button>
 
         <Footer />
       </Box>

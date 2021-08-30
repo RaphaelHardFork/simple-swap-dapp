@@ -1,4 +1,5 @@
 import detectEthereumProvider from "@metamask/detect-provider"
+import WalletConnectProvider from "@walletconnect/web3-provider"
 import { ethers } from "ethers"
 import { useEffect, useReducer, useRef, useState } from "react"
 
@@ -61,6 +62,7 @@ export const useProviders = () => {
   useEffect(() => {
     console.log("1. Get the provider")
     ;(async () => {
+      // try to catch a wallet connect connection
       let catchedProvider = null
       try {
         // correspond to window.ethereum = the provider of Metamask
@@ -72,7 +74,6 @@ export const useProviders = () => {
       if (catchedProvider === null) {
         // if there is no metamask extension installed
         const switchedNetwork = window.localStorage.getItem("switched-network")
-
         console.log(switchedNetwork)
 
         catchedProvider = ethers.getDefaultProvider(switchedNetwork) // try to store the network in the localstorage
@@ -80,6 +81,21 @@ export const useProviders = () => {
       }
     })()
   }, [])
+
+  // Connection with WalletConnect
+  const wcConnect = async () => {
+    const provider = new WalletConnectProvider({
+      infuraId: "3c717cd3192b470baedb127d89581a23",
+    })
+
+    console.log(provider)
+    try {
+      await provider.enable()
+      setProvider(provider)
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   // 2. Wrap the provider with Ethers.js
   useEffect(() => {
@@ -131,6 +147,7 @@ export const useProviders = () => {
   // switch the network, need to change the provider if no Web3Provider
   // problem with the switch of the network on default provider ...
   const switchNetwork = async (chainId) => {
+    console.log(state.providerType)
     if (state.providerType === "Web3Provider") {
       try {
         await state.provider.provider.request({
@@ -162,5 +179,5 @@ export const useProviders = () => {
     }
   }, [state.provider, state.networkName])
 
-  return [state, switchNetwork]
+  return [state, switchNetwork, wcConnect]
 }
