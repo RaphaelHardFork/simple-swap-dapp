@@ -43,6 +43,7 @@ const reducer = (state, action) => {
   }
 }
 
+// --------------------------------------------------------------- HOOK
 export const useProviders = () => {
   const [provider, setProvider] = useState(null)
   const isMounted = useRef(false)
@@ -63,14 +64,14 @@ export const useProviders = () => {
       let catchedProvider = null
       try {
         // correspond to window.ethereum = the provider of Metamask
-        catchedProvider = await detectEthereumProvider() // dot throw e
+        catchedProvider = await detectEthereumProvider() // don't throw e
         setProvider(catchedProvider)
       } catch (e) {
         console.log(e)
       }
       if (catchedProvider === null) {
         // if there is no metamask extension installed
-        catchedProvider = ethers.getDefaultProvider("kovan")
+        catchedProvider = ethers.getDefaultProvider(undefined) // try to store the network in the localstorage
         setProvider(catchedProvider)
       }
     })()
@@ -90,6 +91,7 @@ export const useProviders = () => {
           providerType: "Web3Provider",
         })
       } catch {
+        console.log("The provider should set the provider below")
         console.log(provider)
         dispatch({
           type: "SET_PROVIDER",
@@ -141,6 +143,8 @@ export const useProviders = () => {
       }
     } else {
       const network = chainIdtoName(parseInt(chainId, 16))
+      // Try to store in the local storage and reload the page !
+      // window.location.reload()
       const newProvider = ethers.getDefaultProvider(network.toLowerCase())
       setProvider(newProvider)
     }
