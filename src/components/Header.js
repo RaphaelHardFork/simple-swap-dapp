@@ -6,18 +6,13 @@ import {
   Spacer,
   Button,
   Badge,
-  FormControl,
-  FormLabel,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
 } from "@chakra-ui/react"
-import { useProviders } from "../web3hook/src/useProvidersOld"
 
-/*
-const Header = () => {
-  // const [state, switchNetwork] = useProviders()
+const Header = ({ networkName, switchNetwork, providerType }) => {
   return (
     <>
       {" "}
@@ -31,11 +26,21 @@ const Header = () => {
               Switch network
             </MenuButton>
             <MenuList>
-              <MenuItem onClick={() => switchNetwork("0x1")}>Mainnet</MenuItem>
-              <MenuItem onClick={() => switchNetwork("0x3")}>Ropsten</MenuItem>
-              <MenuItem onClick={() => switchNetwork("0x4")}>Rinkeby</MenuItem>
-              <MenuItem onClick={() => switchNetwork("0x5")}>Goërli</MenuItem>
-              <MenuItem onClick={() => switchNetwork("0x2a")}>Kovan</MenuItem>
+              <MenuItem onClick={() => switchNetwork("0x1", "mainnet")}>
+                Mainnet
+              </MenuItem>
+              <MenuItem onClick={() => switchNetwork("0x3", "ropsten")}>
+                Ropsten
+              </MenuItem>
+              <MenuItem onClick={() => switchNetwork("0x4", "rinkeby")}>
+                Rinkeby
+              </MenuItem>
+              <MenuItem onClick={() => switchNetwork("0x5", "goerli")}>
+                Goërli
+              </MenuItem>
+              <MenuItem onClick={() => switchNetwork("0x2a", "kovan")}>
+                Kovan
+              </MenuItem>
             </MenuList>
           </Menu>
           <Badge
@@ -43,17 +48,17 @@ const Header = () => {
             shadow="lg"
             borderRadius="10"
             p="4"
-            colorScheme={state.provider === null ? "red" : "blue"}
+            colorScheme={networkName === null ? "red" : "blue"}
           >
-            {state.provider === null ? "Fetch network" : state.networkName}
+            {networkName ? networkName : "Fetch network"}
           </Badge>
           <Badge
             shadow="lg"
             borderRadius="10"
             p="4"
-            colorScheme={state.provider === null ? "red" : "green"}
+            colorScheme={providerType ? "green" : "red"}
           >
-            {state.provider === null ? "No provider" : state.providerType}
+            {providerType ? providerType : "No provider"}
           </Badge>
         </Flex>
       </Box>
@@ -62,4 +67,3 @@ const Header = () => {
 }
 
 export default Header
-*/

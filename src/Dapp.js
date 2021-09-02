@@ -1,34 +1,15 @@
 import { Box, Button, Heading } from "@chakra-ui/react"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
-import { useProviders } from "./web3hook/src/useProvidersOld"
-import { ethers } from "ethers"
-import { useEffect, useState } from "react"
-import { contractABI, contractAddress } from "./contracts/token"
-
-import WalletConnectProvider from "@walletconnect/web3-provider"
+import { useProviders } from "./web3hook/useProviders"
 
 const Dapp = () => {
-  /*
-  const [state, , wcConnect] = useProviders()
+  const [state, switchNetwork, wcConnect] = useProviders()
+  const { networkName, providerType } = state
 
-  const [contract, setContract] = useState(null)
-
-  useEffect(() => {
-    if (state.provider) {
-      const contract = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        state.provider
-      )
-      setContract(contract)
-    }
-  }, [state.provider])
-
-  async function debug() {
+  const debug = () => {
     console.log(state)
   }
-  */
 
   return (
     <>
@@ -39,10 +20,19 @@ const Dapp = () => {
         display="flex"
         minH="100vh"
       >
+        <Header
+          networkName={networkName}
+          providerType={providerType}
+          switchNetwork={switchNetwork}
+        />
         <Heading textAlign="center">Welcome to Simple Swap</Heading>
 
-        <Button colorScheme="blue">Debug</Button>
-        <Button colorScheme="blue">Connect</Button>
+        <Button onClick={debug} colorScheme="blue">
+          Debug
+        </Button>
+        <Button onClick={wcConnect} colorScheme="blue">
+          Connect with Wallet Connect
+        </Button>
 
         <Footer />
       </Box>
