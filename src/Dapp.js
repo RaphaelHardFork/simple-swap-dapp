@@ -1,7 +1,7 @@
 import { Box, Button, Heading } from "@chakra-ui/react"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
-import { useProviders } from "./web3hook/src/useProviders"
+import { useProviders } from "./web3hook/src/useProvidersOld"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
 import { contractABI, contractAddress } from "./contracts/token"
@@ -9,6 +9,7 @@ import { contractABI, contractAddress } from "./contracts/token"
 import WalletConnectProvider from "@walletconnect/web3-provider"
 
 const Dapp = () => {
+  /*
   const [state, , wcConnect] = useProviders()
 
   const [contract, setContract] = useState(null)
@@ -27,6 +28,7 @@ const Dapp = () => {
   async function debug() {
     console.log(state)
   }
+  */
 
   return (
     <>
@@ -37,12 +39,10 @@ const Dapp = () => {
         display="flex"
         minH="100vh"
       >
-        <Header />
-
         <Heading textAlign="center">Welcome to Simple Swap</Heading>
 
-        <Button onClick={debug}>Debug</Button>
-        <Button onClick={wcConnect}>Connect</Button>
+        <Button colorScheme="blue">Debug</Button>
+        <Button colorScheme="blue">Connect</Button>
 
         <Footer />
       </Box>

@@ -13,10 +13,11 @@ import {
   MenuItem,
   MenuList,
 } from "@chakra-ui/react"
-import { useProviders } from "../web3hook/src/useProviders"
+import { useProviders } from "../web3hook/src/useProvidersOld"
 
+/*
 const Header = () => {
-  const [state, switchNetwork] = useProviders()
+  // const [state, switchNetwork] = useProviders()
   return (
     <>
       {" "}
@@ -61,3 +62,4 @@ const Header = () => {
 }
 
 export default Header
+*/
