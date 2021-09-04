@@ -11,8 +11,12 @@ import {
   MenuItem,
   MenuList,
 } from "@chakra-ui/react"
+import { ethers } from "ethers"
+import { useWeb3 } from "../web3hook/useWeb3"
 
-const Header = ({ networkName, switchNetwork, providerType }) => {
+const Header = () => {
+  const { state, switchNetwork, connectToMetamask } = useWeb3()
+  const { networkName, providerType, account } = state
   return (
     <>
       {" "}
@@ -48,11 +52,23 @@ const Header = ({ networkName, switchNetwork, providerType }) => {
             shadow="lg"
             borderRadius="10"
             p="4"
+            colorScheme={
+              account === ethers.constants.AddressZero ? "red" : "blue"
+            }
+          >
+            {account}
+          </Badge>
+          <Badge
+            me="4"
+            shadow="lg"
+            borderRadius="10"
+            p="4"
             colorScheme={networkName === null ? "red" : "blue"}
           >
             {networkName ? networkName : "Fetch network"}
           </Badge>
           <Badge
+            me="4"
             shadow="lg"
             borderRadius="10"
             p="4"
@@ -60,6 +76,9 @@ const Header = ({ networkName, switchNetwork, providerType }) => {
           >
             {providerType ? providerType : "No provider"}
           </Badge>
+          <Button colorScheme="blackAlpha" onClick={connectToMetamask}>
+            Connect Metamask
+          </Button>
         </Flex>
       </Box>
     </>

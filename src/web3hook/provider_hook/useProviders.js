@@ -2,6 +2,7 @@ import detectEthereumProvider from "@metamask/detect-provider"
 import WalletConnectProvider from "@walletconnect/web3-provider"
 import { ethers } from "ethers"
 import { useEffect, useReducer, useRef, useState } from "react"
+import { reducer } from "./reducer"
 
 /*
 This is a hook to connect to blockchain through several provider.
@@ -15,36 +16,6 @@ Metamask provider the easiest way to connect a blockchain, indeed Metamask injec
 So the execpt the connection is initiated with Wallet Connect, the hook will try to find the provider from Metamask
 */
 
-// Reducer for maintain the hook state
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_ETHERS_PROVIDER":
-      return {
-        ...state,
-        providerType: action.providerType,
-        ethersProvider: action.wrappedProvider,
-        providerSrc: action.providerSrc,
-      }
-
-    case "SET_NETWORK":
-      return {
-        ...state,
-        networkName: action.networkName,
-        chainId: action.chainId,
-      }
-
-    case "SET_ACCOUNT":
-      return { ...state, signer: action.signer, account: action.account }
-
-    case "SET_BALANCE":
-      return { ...state, balance: action.balance }
-
-    default:
-      throw new Error(
-        `useProviders: something went wrong in the reducer with the type: ${action.type}`
-      )
-  }
-}
 export const useProviders = () => {
   // This state is internal, it store the provider which will be used.
   const [provider, setProvider] = useState()
@@ -182,6 +153,19 @@ export const useProviders = () => {
   }, [ethersProvider, providerType])
 
   // -------------------------------------------- METHODS -------------------------
+  const connectToMetamask = async () => {
+    if (providerSrc === "metamask") {
+      try {
+        const account = await ethersProvider.provider.request({
+          method: "eth_requestAccounts",
+        })
+        return account
+      } catch (e) {
+        throw e
+      }
+    }
+  }
+
   const switchNetwork = async (chainId, networkName) => {
     // Only Metamask support this RPC method
     if (providerSrc === "metamask") {
@@ -277,16 +261,22 @@ export const useProviders = () => {
   useEffect(() => {
     if (providerType === "Web3Provider") {
       const accountChanged = async (newAccount) => {
-        if (providerSrc === "metamask") {
-          // Emitted also when Metamask lock, return []
-          if (newAccount.length === 0) {
-            console.log(`Account disconnected`)
-          } else {
-            console.log(`Account changed to ${newAccount[0]}`)
+        console.log(`Account changed to ${newAccount}`)
+        // Same as in [3. Get informations]
+        if (providerType === "Web3Provider") {
+          const signer = await ethersProvider.getSigner()
+          let account
+          try {
+            // Look if a wallet is connected
+            account = await signer.getAddress()
+
+            // Get balance of this account
+            const balance = await ethersProvider.getBalance(account)
+            dispatch({ type: "SET_BALANCE", balance })
+          } catch {
+            account = ethers.constants.AddressZero
           }
-        } else {
-          // dot nothing because we can have multiple account on Wallet Connect
-          console.log("do nothing")
+          dispatch({ type: "SET_ACCOUNT", signer, account })
         }
       }
       ethersProvider.provider.on("accountsChanged", accountChanged)
@@ -309,7 +299,7 @@ export const useProviders = () => {
     }
   }, [ethersProvider, providerType])
 
-  // Disconnection from the provider
+  // Disconnection from the provider (Wallet Connect)
   useEffect(() => {
     if (providerType === "Web3Provider") {
       const disconnection = async (code, reason) => {
@@ -339,5 +329,5 @@ export const useProviders = () => {
   }, [ethersProvider, providerSrc])
 
   // Exported from this hook
-  return [state, switchNetwork, wcConnect]
+  return [state, switchNetwork, wcConnect, connectToMetamask]
 }
