@@ -125,6 +125,25 @@ This hook **must be used in a context** in order to prevent the creation of mult
 
 ### Do a call on a contract
 
+The `useCall` hook provide a function to do call on a blockchain function:
+
+```js
+const contract = {} // is the EthersJS Contract object
+const functionName = "" // String correspond to the function name
+const params = [] // list of parameter in the order
+
+const result = await contractCall(contract, functionName, params)
+```
+
+`result` is either the **transaction object** ([EthersJS](https://docs.ethers.io/v5/api/utils/transactions/#Transaction)) or the result of a read-only function (function view).
+
+The hook provider also a `status` state, which indicate either the transaction is in:
+
+- **"Waiting for comfirmation"**: user must accept transaction on the wallet interface
+- **"Pending"**: transaction waiting to be mined
+- **"Success"**: transaction success
+- **"Failed"**: transaction failed
+
 ```js
 const Dapp = () => {
   const [{ contract, mode }] = useContract(contractAddress, contractABI)
