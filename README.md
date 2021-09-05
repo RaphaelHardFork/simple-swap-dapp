@@ -1,36 +1,9 @@
 # Simple swap dApp
 
-## Set up a custom provider
+## Set up a custom provider hook
 
-See in the `useProviders.js` hook
+See in the [`useProviders.js`](https://github.com/RaphaelHardFork/simple-swap-dapp/tree/main/src/web3hook) hook
 
 ## TODO
 
-- add the function to switch network
-- try to understand the several render for each block
-- see the behavior with no account connected
-- use a contract without signer (metamask lock or no connected account)
-- try to create a modular function to manage the two case (signer & provider)
-- add the wallet connect feature
-
-## Figment
-
-- get provider with detectProvider
-
-  - if provider => ethers web3provider(the right provider: metamask or wallet connect)
-  - what is ethers.providers ? can get network without being set ?
-  - get address through the signer!
-
-## The method
-
-### TODO
-
-- See what we can do with the default provider
-
-## Wallet Connect
-
-[Docs](https://docs.walletconnect.org/quick-start/dapps/web3-provider)
-
-```zsh
-yarn add @walletconnect/web3-provider
-```
+- Add RPC provider to access polygon or matic

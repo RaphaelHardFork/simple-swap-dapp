@@ -10,7 +10,7 @@ export const useContract = (address, abi) => {
 
   useEffect(() => {
     // Detect if the contract have to be created with a signer or a provider
-    if (state.signer) {
+    if (state.account !== ethers.constants.AddressZero) {
       const contractInstance = new ethers.Contract(address, abi, state.signer)
       setContract({ contract: contractInstance, mode: "signer" })
     } else {
@@ -21,7 +21,7 @@ export const useContract = (address, abi) => {
       )
       setContract({ contract: contractReader, mode: "read-only" })
     }
-  }, [address, abi, state.signer, state.ethersProvider])
+  }, [address, abi, state.signer, state.ethersProvider, state.account])
 
   return [contract]
 }

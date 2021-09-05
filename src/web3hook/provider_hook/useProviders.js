@@ -3,6 +3,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider"
 import { ethers } from "ethers"
 import { useEffect, useReducer, useRef, useState } from "react"
 import { reducer } from "./reducer"
+import { INFURA_ID } from "./apiKeys"
 
 /*
 This is a hook to connect to blockchain through several provider.
@@ -13,7 +14,7 @@ the network change, otherwise the former provider is still active, so it listen 
 If the provider come from Metamask, we do not need to reload the page (which give a better UX)
 
 Metamask provider the easiest way to connect a blockchain, indeed Metamask inject a provider in the browser. 
-So the execpt the connection is initiated with Wallet Connect, the hook will try to find the provider from Metamask
+So the except the connection is initiated with Wallet Connect, the hook will try to find the provider from Metamask
 */
 
 export const useProviders = () => {
@@ -53,7 +54,7 @@ export const useProviders = () => {
         window.localStorage.clear()
         // Get wallet connect provider
         const walletConnectProvider = new WalletConnectProvider({
-          infuraId: "3c717cd3192b470baedb127d89581a23",
+          infuraId: INFURA_ID,
         })
         try {
           await walletConnectProvider.enable()

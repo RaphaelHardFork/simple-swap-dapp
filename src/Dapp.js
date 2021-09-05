@@ -4,29 +4,30 @@ import Header from "./components/Header"
 import { useContract } from "./web3hook/useContract"
 import { contractAddress, contractABI } from "./contracts/token"
 import { useWeb3 } from "./web3hook/useWeb3"
+import { useCall } from "./web3hook/useCall"
 
 const Dapp = () => {
-  const { wcConnect } = useWeb3()
+  const { wcConnect, state } = useWeb3()
+  const [status, contractCall] = useCall()
   const [{ contract, mode }] = useContract(contractAddress, contractABI)
+
   const check = async () => {
-    const tot = await contract.totalSupply()
+    const tot = await contractCall(contract, "totalSupply")
     console.log(tot)
   }
 
   const approve = async () => {
-    try {
-      await contract.approve(
-        "0x3eB876042A00685c75Cfe1fa2Ee496615e3aef8b",
-        10000
-      )
-    } catch (e) {
-      console.log(e)
-    }
+    const tx = await contractCall(contract, "approve", [
+      "0x3eB876042A00685c75Cfe1fa2Ee496615e3aef8b",
+      10000,
+    ])
+    console.log(tx)
   }
 
   const debug = () => {
     console.log(contract)
     console.log(mode)
+    console.log(state)
   }
 
   return (
@@ -47,7 +48,17 @@ const Dapp = () => {
         <Button onClick={check} colorScheme="orange">
           Check total supply
         </Button>
-        <Button onClick={approve} colorScheme="orange">
+        <Button
+          isLoading={
+            status.startsWith("Pending") || status.startsWith("Waiting")
+          }
+          loadingText={status}
+          disabled={
+            status.startsWith("Pending") || status.startsWith("Waiting")
+          }
+          onClick={approve}
+          colorScheme="orange"
+        >
           Do a transaction (approve)
         </Button>
         <Button onClick={wcConnect} colorScheme="blue">
