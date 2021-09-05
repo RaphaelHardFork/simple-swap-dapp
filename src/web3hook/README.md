@@ -39,6 +39,25 @@ const Dapp = () => {
 }
 ```
 
+#### Connect to Metamask
+
+```js
+// src/Dapp.js
+const Dapp = () => {
+  const { connectToMetamask } = useWeb3()
+
+  {...}
+
+  return <>
+    <Button onClick={connectToMetamask}>
+      Connect Metamask
+    </Button>
+  </>
+}
+```
+
+Do nothing if the provider do not come from Metamask
+
 #### Switch network
 
 ```js
@@ -102,7 +121,7 @@ const Dapp = () => {
 
 `mode` return a `String` either `signer` or `read-only`
 
-This hook **must be used in a context** in order to prevent the creation of multiple instance of a contract. Especially if we want to listen event on this contract. 
+This hook **must be used in a context** in order to prevent the creation of multiple instance of a contract. Especially if we want to listen event on this contract.
 
 ### Do a call on a contract
 
